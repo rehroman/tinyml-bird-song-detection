@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: remote
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    gpu: "false"
+  containers:
+    - name: debian
+      image: debian:bullseye
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/bash"]
+      stdin: true
+      tty: true
+      resources:
+        requests:
+          cpu: "10"
+          memory: 16Gi
+        limits:
+          cpu: "24"
+          memory: 32Gi
+      volumeMounts:
+        - name: data-volume
+          mountPath: /home/data
+        - name: cut-data-volume
+          mountPath: /home/cut-data
+        - name: metadata-volume
+          mountPath: /home/metadata
+        - name: models-volume
+          mountPath: /home/models          
+        - name: notebooks-volume
+          mountPath: /home/notebooks          
+  volumes:
+    - name: data-volume
+      persistentVolumeClaim:
+        claimName: dataset
+    - name: cut-data-volume
+      persistentVolumeClaim:
+        claimName: cut-dataset
+    - name: metadata-volume
+      persistentVolumeClaim:
+        claimName: metadata
+    - name: models-volume
+      persistentVolumeClaim:
+        claimName: models        
+    - name: notebooks-volume
+      persistentVolumeClaim:
+        claimName: notebooks        

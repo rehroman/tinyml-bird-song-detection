@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: birdnet-analyzer
+spec:
+  containers:
+    - name: birdnet-analyzer
+      image: registry.datexis.com/s31464/birdnet:4441a350
+      command: []      
+      args: ["analyze.py", "--i", "/home/data/AudioSet/miscellaneous/focus_classes/", "--slist", "/home/metadata/species_list_miscellaneous/", "--o", "/home/metadata/analyzeoutput_audioset_miscellaneous/", "--min_conf", "0.75", "--rtype", "csv", "--sensitivity", "1.5", "--threads", "24"]
+      volumeMounts:
+        - name: data-volume
+          mountPath: "/home/data"
+        - name: cut-data-volume
+          mountPath: "/home/cut-data"
+        - name: metadata-volume
+          mountPath: "/home/metadata"
+      resources:
+        requests:
+          cpu: "12"
+          memory: 16Gi
+        limits:
+          cpu: "26"
+          memory: 32Gi
+  imagePullSecrets:
+    - name: private-registry-auth
+  volumes:
+    - name: data-volume
+      persistentVolumeClaim:
+        claimName: dataset
+    - name: cut-data-volume
+      persistentVolumeClaim:
+        claimName: cut-dataset
+    - name: metadata-volume
+      persistentVolumeClaim:
+        claimName: metadata

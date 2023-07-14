@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: data-check
+spec:
+  restartPolicy: Never
+  nodeSelector:
+    gpu: "false"
+  containers:
+    - name: debian
+      image: debian:bullseye
+      imagePullPolicy: IfNotPresent
+      command: ["/bin/bash"]
+      stdin: true
+      tty: true
+      resources:
+        requests:
+          cpu: "1"
+          memory: 8Gi
+        limits:
+          cpu: "10"
+          memory: 32Gi
+      volumeMounts:
+        - name: cut-dataset-bkp-volume
+          mountPath: /home/cut-dataset-bkp
+  volumes:
+    - name: cut-dataset-bkp-volume
+      persistentVolumeClaim:
+        claimName: cut-dataset-bkp

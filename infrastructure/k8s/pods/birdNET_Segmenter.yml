@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: birdnet-segmenter
+spec:
+  containers:
+    - name: birdnet-segmenter
+      image: registry.datexis.com/s31464/birdnet:4441a350
+      command: []      
+      args: ["segments.py", "--audio", "/home/data/AudioSet/miscellaneous/focus_classes/", "--o", "/home/cut-data/miscellaneous/audioset/focus_classes/", "--results", "/home/metadata/analyzeoutput_audioset_miscellaneous/", "--min_conf", "0.92", "--max_segments", "100000", "--threads", "24"]
+      volumeMounts:
+        - name: data-volume
+          mountPath: "/home/data"
+        - name: cut-data-volume
+          mountPath: "/home/cut-data"
+        - name: metadata-volume
+          mountPath: "/home/metadata"
+      resources:
+        requests:
+          cpu: "12"
+          memory: 16Gi
+        limits:
+          cpu: "26"
+          memory: 32Gi
+  imagePullSecrets:
+    - name: private-registry-auth
+  volumes:
+    - name: data-volume
+      persistentVolumeClaim:
+        claimName: dataset
+    - name: cut-data-volume
+      persistentVolumeClaim:
+        claimName: cut-dataset
+    - name: metadata-volume
+      persistentVolumeClaim:
+        claimName: metadata
