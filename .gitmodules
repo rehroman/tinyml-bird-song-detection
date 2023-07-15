@@ -1,0 +1,11 @@
+[submodule "scripts/dropbox-file-downloader"]
+	path = scripts/dropbox-file-downloader
+	url = https://github.com/rehroman/dropbox-file-downloader.git
+[submodule "scripts/xeno-canto-py"]
+	path = scripts/xeno-canto-py
+	url = https://github.com/rehroman/xeno-canto-py.git
+	branch = wav
+[submodule "scripts/audioset-processing"]
+	path = scripts/audioset-processing
+	url = https://github.com/rehroman/audioset-processing.git
+	branch = BirdNET_usecase
