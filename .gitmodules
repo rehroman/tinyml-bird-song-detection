@@ -9,3 +9,7 @@
 	path = scripts/audioset-processing
 	url = https://github.com/rehroman/audioset-processing.git
 	branch = BirdNET_usecase
+[submodule "models/origin/BirdNET-Analyzer"]
+	path = models/origin/BirdNET-Analyzer
+	url = https://github.com/rehroman/BirdNET-Analyzer.git
+	branch = no-target
