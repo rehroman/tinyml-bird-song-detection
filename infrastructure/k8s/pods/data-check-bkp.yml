@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: data-check
+  name: data-check-bkp
 spec:
   restartPolicy: Never
   nodeSelector:

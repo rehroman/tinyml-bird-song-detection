@@ -11,15 +11,15 @@ spec:
         - containerPort: 8888
       volumeMounts:
         - name: data-volume
-          mountPath: /home/data
+          mountPath: /home/jovyan/data
         - name: cut-data-volume
-          mountPath: /home/cut-data
+          mountPath: /home/jovyan/cut-data
         - name: metadata-volume
-          mountPath: /home/metadata
+          mountPath: /home/jovyan/metadata
         - name: models-volume
-          mountPath: /home/models          
+          mountPath: /home/jovyan/models          
         - name: notebooks-volume
-          mountPath: /home/notebooks
+          mountPath: /home/jovyan/notebooks
       resources:
         requests:
           cpu: "12"
