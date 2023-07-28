@@ -95,29 +95,16 @@ def trainNewModel(new_model, train_layers_num, x_train, y_train, x_val, y_val, f
     np.random.seed(42)
 
     # Shuffle train data
-    # idx = np.arange(x_train.shape[0])
-    # np.random.shuffle(idx)
-    # x_train = x_train[idx]
-    # y_train = y_train[idx]
-    
-# DEBUG
-    # print(f"x_train shape: {x_train.shape}, y_train shape: {y_train.shape}")
-    # print(f"x_train first entries: {x_train[:5]}, y_train first entries: {y_train[:5]}")
-    # print(f"unique labels in y_train: {np.unique(y_train).size}")
-    # print(f"file_paths_train size: {len(file_paths_train)}, first entries: {file_paths_train[:5]}")
+    idx = np.arange(x_train.shape[0])
+    np.random.shuffle(idx)
+    x_train = x_train[idx]
+    y_train = y_train[idx]
     
     # Shuffle validation data
-    # idx = np.arange(x_val.shape[0])
-    # np.random.shuffle(idx)
-    # x_val = x_val[idx]
-    # y_val = y_val[idx]
-    
-    
-# DEBUG
-    # print(f"x_val shape: {x_val.shape}, y_val shape: {y_val.shape}")
-    # print(f"x_val first entries: {x_val[:5]}, y_val first entries: {y_val[:5]}")
-    # print(f"unique labels in y_val: {np.unique(y_val).size}")
-    # print(f"file_paths_val size: {len(file_paths_val)}, first entries: {file_paths_val[:5]}")
+    idx = np.arange(x_val.shape[0])
+    np.random.shuffle(idx)
+    x_val = x_val[idx]
+    y_val = y_val[idx]
 
     # Early stopping
     callbacks = [
@@ -126,10 +113,10 @@ def trainNewModel(new_model, train_layers_num, x_train, y_train, x_val, y_val, f
     ]
     
     # Cosine annealing lr schedule
-    #lr_schedule = keras.experimental.CosineDecay(learning_rate, epochs * x_train.shape[0] / batch_size)
+    lr_schedule = keras.experimental.CosineDecay(learning_rate, epochs * x_train.shape[0] / batch_size)
 
     # Compile model
-    new_model.compile(optimizer=keras.optimizers.Adam(learning_rate=learning_rate, clipnorm=1.0, clipvalue=0.5), 
+    new_model.compile(optimizer=keras.optimizers.Adam(learning_rate=lr_schedule), 
                        loss='binary_crossentropy', 
                        metrics=['accuracy', 
                                 tf.keras.metrics.Precision(name='prec'), 
@@ -149,7 +136,7 @@ def trainNewModel(new_model, train_layers_num, x_train, y_train, x_val, y_val, f
 
 
 class AudioDataGenerator(tf.keras.utils.Sequence):
-#Use AudioDataGenerator for audiofile batch loading during training
+#Use AudioDataGenerator for audiofile batch loading
 
     #Initialize AudioDataGEnerator
     def __init__(self, file_paths, labels, batch_size, samplerate=48000, clip_length=3.0):
@@ -167,10 +154,6 @@ class AudioDataGenerator(tf.keras.utils.Sequence):
     def __getitem__(self, idx):
         batch_x = self.file_paths[idx * self.batch_size:(idx + 1) * self.batch_size]
         batch_y = self.labels[idx * self.batch_size:(idx + 1) * self.batch_size]
-        
-        # DEBUG
-        # print(f"batch_x size: {len(batch_x)}, first entries: {batch_x[:5]}")
-        # print(f"batch_y shape: {batch_y.shape}, first entries: {batch_y[:5]}")
 
         return np.array([self.load_audio_file(file_name) for file_name in batch_x]), np.array(batch_y)
 

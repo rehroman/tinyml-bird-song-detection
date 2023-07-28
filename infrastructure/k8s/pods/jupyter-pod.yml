@@ -17,16 +17,18 @@ spec:
         - name: metadata-volume
           mountPath: /home/jovyan/metadata
         - name: models-volume
-          mountPath: /home/jovyan/models          
+          mountPath: /home/jovyan/models
         - name: notebooks-volume
           mountPath: /home/jovyan/notebooks
       resources:
         requests:
-          cpu: "12"
+          cpu: "26"
           memory: 16Gi
         limits:
-          cpu: "24"
-          memory: 32Gi
+          cpu: "26"
+          memory: 64Gi
+  nodeSelector:
+    cpuclass: epyc
   volumes:
     - name: data-volume
       persistentVolumeClaim:
@@ -39,7 +41,7 @@ spec:
         claimName: metadata
     - name: models-volume
       persistentVolumeClaim:
-        claimName: models        
+        claimName: models
     - name: notebooks-volume
       persistentVolumeClaim:
         claimName: notebooks
