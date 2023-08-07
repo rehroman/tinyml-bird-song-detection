@@ -87,8 +87,7 @@ def trainNewModel(new_model, train_layers_num, x_train, y_train, x_val, y_val, f
     # freeze layer except for train_layers_num
     for layer in new_model.layers[:-train_layers_num]:
         layer.trainable = False
-        
-# DEBUG        
+    
     print("Length of trainable Weightslen ", len(new_model.trainable_weights))
     
     # Set random seed
@@ -99,12 +98,14 @@ def trainNewModel(new_model, train_layers_num, x_train, y_train, x_val, y_val, f
     np.random.shuffle(idx)
     x_train = x_train[idx]
     y_train = y_train[idx]
+    file_paths_train = file_paths_train[idx]
     
     # Shuffle validation data
     idx = np.arange(x_val.shape[0])
     np.random.shuffle(idx)
     x_val = x_val[idx]
     y_val = y_val[idx]
+    file_paths_val = file_paths_val[idx]
 
     # Early stopping
     callbacks = [
@@ -116,7 +117,7 @@ def trainNewModel(new_model, train_layers_num, x_train, y_train, x_val, y_val, f
     lr_schedule = keras.experimental.CosineDecay(learning_rate, epochs * x_train.shape[0] / batch_size)
 
     # Compile model
-    new_model.compile(optimizer=keras.optimizers.Adam(learning_rate=lr_schedule), 
+    new_model.compile(optimizer=keras.optimizers.Adam(learning_rate=lr_schedule, clipnorm=1.0, clipvalue=0.5), 
                        loss='binary_crossentropy', 
                        metrics=['accuracy', 
                                 tf.keras.metrics.Precision(name='prec'), 
@@ -160,9 +161,10 @@ class AudioDataGenerator(tf.keras.utils.Sequence):
     #load the audiofile, extract segment
     def load_audio_file(self, file_path):
         import audio
-        
-         # DEBUG
-        # ("Loading audio file: ", file_path) 
+        import os
+
+        if not os.path.isfile(file_path):
+            raise ValueError(f"{file_path} is not a valid file.")
     
         sig, rate = audio.openAudioFile(file_path)
         sig = audio.cropCenter(sig, self.rate, self.clip_length)
