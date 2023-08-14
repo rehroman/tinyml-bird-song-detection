@@ -2,6 +2,10 @@ import numpy as np
 import tensorflow as tf
 import tflite_runtime.interpreter as tflite
 
+import glob
+from tensorflow import keras as k
+from keras import layers as l
+
 
 INTERPRETER = None
 
@@ -211,3 +215,116 @@ def debug_model(model, file_paths_train, y_train, batch_size):
     print(f"Total samples with NaN values: {len(nan_samples)}")
 
     return nan_samples
+
+# Define custom Layer LinearSpecLayer
+import tensorflow as tf
+from tensorflow.keras import layers
+
+class LinearSpecLayer(layers.Layer):
+    def __init__(self, sample_rate=48000, spec_shape=(64, 384), frame_step=374, frame_length=512, fmin=250,
+                 fmax=15000, data_format='channels_last', **kwargs):
+        super(LinearSpecLayer, self).__init__(**kwargs)
+        self.sample_rate = sample_rate
+        self.spec_shape = spec_shape
+        self.frame_step = frame_step
+        self.frame_length = frame_length
+        self.fmin = fmin
+        self.fmax = fmax
+        self.data_format = data_format
+
+    def build(self, input_shape):
+        self.mag_scale = self.add_weight(name='magnitude_scaling',
+                                         initializer=tf.keras.initializers.Constant(value=1.23),
+                                         trainable=True)
+        super(LinearSpecLayer, self).build(input_shape)
+
+    def call(self, inputs, training=None):
+        # Normalize values between 0 and 1
+        inputs = tf.math.subtract(inputs, tf.math.reduce_min(inputs, axis=1, keepdims=True))
+        inputs = tf.math.divide(inputs, tf.math.reduce_max(inputs, axis=1, keepdims=True) + 0.000001)
+        spec = tf.signal.stft(inputs,
+                              self.frame_length,
+                              self.frame_step,
+                              window_fn=tf.signal.hann_window,
+                              pad_end=False,
+                              name='stft')
+
+        # magnitude of the complex number
+        spec = tf.abs(spec)
+
+        # Only keep bottom half of spectrum
+        spec = spec[:, :, :self.frame_length // 4]
+
+        # Convert to power spectrogram
+        spec = tf.math.pow(spec, 2.0)
+
+        # Convert magnitudes using nonlinearity
+        spec = tf.math.pow(spec, 1.0 / (1.0 + tf.math.exp(self.mag_scale)))
+
+        # Swap axes to fit input shape
+        spec = tf.transpose(spec, [0, 2, 1])
+
+        # Add channel axis
+        if self.data_format == 'channels_last':
+            spec = tf.expand_dims(spec, -1)
+        else:
+            spec = tf.expand_dims(spec, 1)
+
+        print(f"final spec shape:{spec}")
+
+        return spec
+
+    def get_config(self):
+        config = super(LinearSpecLayer, self).get_config()
+        config.update({
+            'sample_rate': self.sample_rate,
+            'spec_shape': self.spec_shape,
+            'frame_step': self.frame_step,
+            'frame_length': self.frame_length,
+            'fmin': self.fmin,
+            'fmax': self.fmax,
+            'data_format': self.data_format
+        })
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+    
+    
+import tensorflow as tf
+from tensorflow.keras import layers
+
+def logmeanexp(x, axis=None, keepdims=False, sharpness=1.0):
+    xmax = tf.math.reduce_max(x, axis=axis, keepdims=True)
+    x = sharpness * (x - xmax)
+    y = tf.math.log(tf.math.reduce_mean(tf.exp(x), axis=axis, keepdims=keepdims))
+    y = y / sharpness + xmax
+    return y
+
+class GlobalLogExpPooling2D(layers.Layer):
+    def __init__(self, data_format=None,  **kwargs):
+        super(GlobalLogExpPooling2D, self).__init__(**kwargs)
+        self.data_format = data_format
+
+    def build(self, input_shape):
+        self.sharpness = self.add_weight(name='sharpness', 
+                                         shape=(1,), 
+                                         initializer=tf.initializers.Constant(value=2.0), 
+                                         trainable=True)
+        super(GlobalLogExpPooling2D, self).build(input_shape) 
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[3])
+
+    def call(self, x):
+        return logmeanexp(x, axis=[1, 2], sharpness=self.sharpness)
+    
+    def get_config(self):
+        config = super(GlobalLogExpPooling2D, self).get_config()
+        config.update({'data_format': self.data_format})
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
