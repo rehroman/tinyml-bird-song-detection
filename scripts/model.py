@@ -50,7 +50,7 @@ def embeddings(sample, model_path):
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Dense, Activation
 
-def addLinearClassifier(origin_model, num_labels, hidden_units=0):
+def addLinearClassifier(origin_model, num_labels, hidden_units):
     
     # Add dense layer with 'relu' activation if hidden_units > 0
     # The output of the origin_model is used as input for this layer
@@ -63,7 +63,7 @@ def addLinearClassifier(origin_model, num_labels, hidden_units=0):
     predictions = Dense(num_labels)(x)
     
     # Transform raw scores to probabilities with sigmoid activation
-    output = Activation('sigmoid')(predictions)
+    output = Activation('softmax')(predictions)
 
     # Now we create the new model
     new_model = Model(inputs=origin_model.input, outputs=output)
@@ -318,7 +318,8 @@ class GlobalLogExpPooling2D(layers.Layer):
         return (input_shape[0], input_shape[3])
 
     def call(self, x):
-        return logmeanexp(x, axis=[1, 2], sharpness=self.sharpness)
+        pooled = logmeanexp(x, axis=[1, 2], sharpness=self.sharpness)
+        return tf.reshape(pooled, [-1, 420])
     
     def get_config(self):
         config = super(GlobalLogExpPooling2D, self).get_config()
