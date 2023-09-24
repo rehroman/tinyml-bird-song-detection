@@ -62,7 +62,7 @@ def addLinearClassifier(origin_model, num_labels, hidden_units):
     # Add dense layer outputting raw scores for each class
     predictions = Dense(num_labels)(x)
     
-    # Transform raw scores to probabilities with sigmoid activation
+    # Transform raw scores to probabilities with activation
     output = Activation('softmax')(predictions)
 
     # Now we create the new model

@@ -75,7 +75,7 @@ def evaluate_tflite_model(tflite_model_path, test_data_path, batch_size):
             input_data = np.expand_dims(file_x, axis=0)
 #DEBUG---   
             # get input file path
-            file_path = file_paths[i * batch_size + j]
+            file_path = balanced_file_paths_test[len(y_true) - 1]
             # Print the file path
 
 #---
