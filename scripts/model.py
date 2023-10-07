@@ -269,9 +269,9 @@ class LinearSpecLayer(layers.Layer):
             spec = tf.expand_dims(spec, -1)
         else:
             spec = tf.expand_dims(spec, 1)
-
+# debug
         print(f"final spec shape:{spec}")
-
+# ---
         return spec
 
     def get_config(self):
@@ -291,7 +291,7 @@ class LinearSpecLayer(layers.Layer):
     def from_config(cls, config):
         return cls(**config)
     
-    
+# Define custom Layer Logmeanexp 
 import tensorflow as tf
 from tensorflow.keras import layers
 
